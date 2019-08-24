@@ -16,8 +16,8 @@ from keras.layers import Dense
 classifier = Sequential()
 
 # Step 1 - Convolution
-#classifier.add(Conv2D(32, (3, 3), input_shape = (28, 28, 1), activation = 'relu'))
-classifier.add(Conv2D(32, (3, 3), input_shape = (784, 1, 1), activation = 'relu'))
+classifier.add(Conv2D(32, (3, 3), input_shape = (28, 28, 1), activation = 'relu'))
+#classifier.add(Conv2D(32, (3, 3), input_shape = (784, 1, 1), activation = 'relu'))
 
 # Step 2 - Pooling
 classifier.add(MaxPooling2D(pool_size = (2, 2)))
@@ -36,7 +36,7 @@ classifier.add(Dense(units = 1, activation = 'sigmoid'))
 # Compiling the CNN
 classifier.compile(optimizer = 'adam', loss = 'binary_crossentropy', metrics = ['accuracy'])
 
-
+##################################################################################
 # Importing the libraries
 import numpy as np
 import matplotlib.pyplot as plt
@@ -48,20 +48,31 @@ X = dataset.iloc[:, 1: ].values
 y = dataset.iloc[:, 0].values
 
 
-X_array = []
- 
-for x in X:
+#X_array = []
+# 
+#for x in X:
 #     x[x<100]=0
 #     x[x>100]=1
-   
-     X_array.append(np.reshape(x,(-1,28)))
-    
-X=X_array
+#   
+#     X_array.append(np.reshape(x,(-1,28)))
+#    
+#X=X_array
+
+c=np.ones((len(X),28,28,1));
+
+for i in range( len(X)):
+  print(i)
+  c[i,:]=  np.reshape(X[i],(28,28,1)) 
+
+
+X=c
+
 
 # Splitting the dataset into the Training set and Test set
 from sklearn.cross_validation import train_test_split
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 1/3, random_state = 0)
 
+ 
 
 #b=np.reshape(X_train[1],(-1,28))
  
@@ -79,6 +90,8 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 1/3, rando
 #                         validation_steps = 14000)
 
 
+
+
 from keras.preprocessing.image import ImageDataGenerator
 # initialize the number of epochs and batch size
 EPOCHS = 100
@@ -88,8 +101,16 @@ BS = 32
 aug = ImageDataGenerator(rotation_range=20, zoom_range=0.15,
 	width_shift_range=0.2, height_shift_range=0.2, shear_range=0.15,
 	horizontal_flip=True, fill_mode="nearest")
+ 
+ 
+training_set= aug.flow(X_train, y_train, batch_size=BS)
+  
+import matplotlib.pyplot as plt
+p = training_set.next()
+plt.imshow(p[0][0][:,:,0], cmap='gray')
+plt.show()
 
 # train the network
-H = classifier.fit_generator(aug.flow(X_train, y_train, batch_size=BS),
+H = classifier.fit_generator(training_set,
 	validation_data=(X_test, y_test), steps_per_epoch=len(X_train) // BS,
 	epochs=EPOCHS)

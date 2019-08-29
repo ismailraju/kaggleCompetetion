@@ -62,11 +62,13 @@ c=np.ones((len(X),28,28,1));
 
 for i in range( len(X)):
   print(i)
-  c[i,:]=  np.reshape(X[i],(28,28,1)) 
+  x = (X[i] / 255) - 0.5
+  c[i,:]=  np.reshape(x,(28,28,1)) 
 
 
 X=c
 
+r=X.reshape((-1, 28,28))
 
 # Splitting the dataset into the Training set and Test set
 from sklearn.cross_validation import train_test_split
@@ -94,7 +96,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 1/3, rando
 
 from keras.preprocessing.image import ImageDataGenerator
 # initialize the number of epochs and batch size
-EPOCHS = 100
+EPOCHS = 10
 BS = 32
 
 # construct the training image generator for data augmentation
@@ -114,3 +116,14 @@ plt.show()
 H = classifier.fit_generator(training_set,
 	validation_data=(X_test, y_test), steps_per_epoch=len(X_train) // BS,
 	epochs=EPOCHS)
+ 
+ # Save the model to disk.
+classifier.save_weights('model.h5')
+ 
+ predictions = classifier.predict(X_test[:5])
+
+# Print our model's predictions.
+print(np.argmax(predictions, axis=1)) # [7, 2, 1, 0, 4]
+
+# Check our predictions against the ground truths.
+print(y_test[:5]) # [7, 2, 1, 0, 4]
